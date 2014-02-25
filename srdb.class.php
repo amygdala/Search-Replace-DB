@@ -437,7 +437,18 @@ class icit_srdb {
 	public function connect_pdo() {
 
 		try {
-			$connection = new PDO( "mysql:host={$this->host};dbname={$this->name}", $this->user, $this->pass );
+			// if the host string starts with ':'
+			if (substr($this->host, 0, 1) === ":") {
+				// then this is a socket hostname
+				$socketname = ltrim ($this->host,':');
+				$connection = new PDO("mysql:unix_socket={$socketname};dbname={$this->name};charset=utf8",
+					$this->user, $this->pass
+				);
+			}
+			else {
+				// default to original args
+				$connection = new PDO( "mysql:host={$this->host};dbname={$this->name}", $this->user, $this->pass );
+			}
 		} catch( PDOException $e ) {
 			$this->add_error( $e->getMessage(), 'db' );
 			$connection = false;
